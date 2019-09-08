@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+    <title>BthGh</title>
+    <link href="http://bthgh.github.io/feed.xml" rel="self" />
+    <link href="http://bthgh.github.io" />
+    <updated>2019-09-08T17:17:20+08:00</updated>
+    <author>
+        <name>BthGh</name>
+    </author>
+    <id>http://bthgh.github.io</id>
+
+    <entry>
+        <title>How to Increase Performance of Asp.net MVC?</title>
+        <author>
+            <name>BthGh</name>
+        </author>
+        <link href="http://bthgh.github.io/how-to-increase-performance-of-aspnet-mvc.html"/>
+        <id>http://bthgh.github.io/how-to-increase-performance-of-aspnet-mvc.html</id>
+
+        <updated>2019-09-01T20:59:58+08:00</updated>
+            <summary>
+                <![CDATA[
+                        <img src="http://bthgh.github.io/media/posts/1/performanceCover.jpg" alt="How to Increase Performance of Asp.net MVC?" />
+                    This article demonstrates how to increase Asp.net MVC 5 performance by using custom view engine. By default, ASP.NET MVC uses both Razor View Engine and ASPX View Engine. When we request for a view in browser, first it uses Web Form View Engine to search&hellip;
+                ]]>
+            </summary>
+        <content type="html">
+            <![CDATA[
+                    <img src="http://bthgh.github.io/media/posts/1/performanceCover.jpg" alt="How to Increase Performance of Asp.net MVC?" />
+                <p>This article demonstrates how to increase Asp.net MVC 5 performance by using custom view engine. By default, ASP.NET MVC uses both Razor View Engine and ASPX View Engine. When we request for a view in browser, first it uses Web Form View Engine to search for the requested view and then using Razor View Engine. For example, when we request Index view from Product Controller, the following locations were searched: </p>
+<pre class="language-cs"><code class="language-cs">~/Views/Product/Index.aspx
+~/Views/Product/Index.ascx
+~/Views/Shared/Index.aspx
+~/Views/Shared/Index.ascx
+~/Views/Product/Index.cshtml
+~/Views/Product/Index.vbhtml
+~/Views/Shared/Index.cshtml
+~/Views/Shared/Index.vbhtml  </code></pre>
+<p> </p>
+<p>As you can see some of them were ended with aspx, which is related to Web Form View Engine. As far as we are using Razor view we don't need Web Form View Engine, so we can remove it. To do this first we need to remove all the view engines and then add the Razor view engine. So you should add the following codes to the Application_Start() method of Global.asax.</p>
+<pre class="language-cs"><code class="language-cs"><span class="hljs-function"><span class="hljs-keyword">protected</span> <span class="hljs-keyword">void</span> <span class="hljs-title">Application_Start</span><span class="hljs-params">()</span>
+        </span>{
+            AreaRegistration.RegisterAllAreas();
+            FilterConfig.RegisterGlobalFilters(GlobalFilters.Filters);
+            
+            <span class="hljs-comment">//Add these two Lines</span>
+            ViewEngines.Engines.Clear();  
+            ViewEngines.Engines.Add(<span class="hljs-keyword">new</span> RazorViewEngine());
+
+            RouteConfig.RegisterRoutes(RouteTable.Routes);
+            BundleConfig.RegisterBundles(BundleTable.Bundles);
+        }
+</code></pre>
+<p>The result will be :</p>
+<pre class="language-cs"><code class="language-cs">~<span class="hljs-regexp">/Views/</span>Product/Index.cshtml
+~<span class="hljs-regexp">/Views/</span>Product/Index.vbhtml
+~<span class="hljs-regexp">/Views/</span>Shared/Index.cshtml
+~<span class="hljs-regexp">/Views/</span>Shared/Index.vbhtml
+</code></pre>
+<p>As you can see the MVC just using Razor view engine, but still searching for both C# and VB pages. As far as we using C# we don't need VB. So we need to create our custom view engine. To create a custom view engine follow these steps:</p>
+<ol>
+<li>Create a class with the name <em>MyViewEngine</em></li>
+<li>Inherit from RazorViewEngine class</li>
+<li>Config predefined location properties</li>
+</ol>
+<pre class="language-cs"><code class="language-cs"><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title">MyViewEngine</span> : <span class="hljs-title">RazorViewEngine</span>
+    {
+        <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">MyViewEngine</span>()
+        </span>{
+            AreaViewLocationFormats = <span class="hljs-keyword">new</span>[]
+            {
+                <span class="hljs-string">"~/Areas/{2}/Views/{1}/{0}.cshtml"</span>,
+                <span class="hljs-string">"~/Areas/{2}/Views/Shared/{0}.cshtml"</span>
+            };
+            AreaMasterLocationFormats = <span class="hljs-keyword">new</span>[]
+            {
+                <span class="hljs-string">"~/Areas/{2}/Views/{1}/{0}.cshtml"</span>,
+                <span class="hljs-string">"~/Areas/{2}/Views/Shared/{0}.cshtml"</span>
+            };
+            AreaPartialViewLocationFormats = <span class="hljs-keyword">new</span>[]
+            {
+                <span class="hljs-string">"~/Areas/{2}/Views/{1}/{0}.cshtml"</span>,
+                <span class="hljs-string">"~/Areas/{2}/Views/Shared/{0}.cshtml"</span>
+            };
+            ViewLocationFormats = <span class="hljs-keyword">new</span>[]
+            {
+                <span class="hljs-string">"~/Views/{1}/{0}.cshtml"</span>,
+                <span class="hljs-string">"~/Views/Shared/{0}.cshtml"</span>
+            };
+            MasterLocationFormats = <span class="hljs-keyword">new</span>[]
+            {
+                <span class="hljs-string">"~/Views/{1}/{0}.cshtml"</span>,
+                <span class="hljs-string">"~/Views/Shared/{0}.cshtml"</span>
+            };
+            PartialViewLocationFormats = <span class="hljs-keyword">new</span>[]
+            {
+                <span class="hljs-string">"~/Views/{1}/{0}.cshtml"</span>,
+                <span class="hljs-string">"~/Views/Shared/{0}.cshtml"</span>
+            };
+        }
+    }
+</code></pre>
+<p>Then we update Application_Start method :</p>
+<pre class="language-cs"><code class="language-cs"><span class="hljs-function"><span class="hljs-keyword">protected</span> <span class="hljs-keyword">void</span> <span class="hljs-title">Application_Start</span><span class="hljs-params">()</span>
+        </span>{
+            AreaRegistration.RegisterAllAreas();
+            FilterConfig.RegisterGlobalFilters(GlobalFilters.Filters);
+
+            ViewEngines.Engines.Clear();  
+            ViewEngines.Engines.Add(<span class="hljs-keyword">new</span> MyViewEngine());
+
+            RouteConfig.RegisterRoutes(RouteTable.Routes);
+            BundleConfig.RegisterBundles(BundleTable.Bundles);
+        }
+</code></pre>
+<p>The result will be:</p>
+<pre class="language-cs"><code class="language-cs">~<span class="hljs-regexp">/Views/</span>product/Index.cshtml
+~<span class="hljs-regexp">/Views/</span>Shared/Index.cshtml
+</code></pre>
+<p>As you can see MVC just search for C# views.</p>
+            ]]>
+        </content>
+    </entry>
+</feed>
