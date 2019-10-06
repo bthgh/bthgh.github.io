@@ -3,7 +3,7 @@
     <title>BthGh</title>
     <link href="https://bthgh.github.io/feed.xml" rel="self" />
     <link href="https://bthgh.github.io" />
-    <updated>2019-09-08T17:20:40+08:00</updated>
+    <updated>2019-10-06T11:13:40+08:00</updated>
     <author>
         <name>BthGh</name>
     </author>
@@ -118,6 +118,111 @@
 ~<span class="hljs-regexp">/Views/</span>Shared/Index.cshtml
 </code></pre>
 <p>As you can see MVC just search for C# views.</p>
+            ]]>
+        </content>
+    </entry>
+    <entry>
+        <title>Create a reusable map using Asp.net MVC, OpenLayers, OSM</title>
+        <author>
+            <name>BthGh</name>
+        </author>
+        <link href="https://bthgh.github.io/create-a-reusable-map-using-aspnet-mvc-openlayers-osm.html"/>
+        <id>https://bthgh.github.io/create-a-reusable-map-using-aspnet-mvc-openlayers-osm.html</id>
+
+        <updated>2019-10-06T11:11:54+08:00</updated>
+            <summary>
+                <![CDATA[
+                        <img src="https://bthgh.github.io/media/posts/2/0.jpg" alt="" />
+                    In a web application, there can be multiple locations which we need to shows a map. Trust me, writing the same code, again and again, is not an appropriate solution at all. It is going to be your maintenance nightmare when you need to do&hellip;
+                ]]>
+            </summary>
+        <content type="html">
+            <![CDATA[
+                    <img src="https://bthgh.github.io/media/posts/2/0.jpg" alt="" />
+                <p>In a web application, there can be multiple locations which we need to shows a map. Trust me, writing the same code, again and again, is not an appropriate solution at all. It is going to be your maintenance nightmare when you need to do some changing in your code. So in this article, we are going to create a reusable component in Asp.net MVC to show the map on our web applications as many times as we need. </p>
+<p>We use :</p>
+<ul>
+<li>Openlayers (v5.3.0) (OL)</li>
+<li>Asp.net MVC 5</li>
+<li>OpenStreetMap (OSM)</li>
+</ul>
+<h3 id="mcetoc_1dmfg8emi0">Step 1:</h3>
+<p>First of all, you need to add the OpenLayers library to your project. OL helps you to create interactive maps on web applications. It can display map tiles, vector data, and markers. You can download this library from <a href="https://openlayers.org/download/" target="_blank" rel="nofollow noopener noreferrer">here</a>. </p>
+<h3 id="mcetoc_1dmfg8emj1">Step 2:</h3>
+<p>In the second step, we should add a custom helper that creates the map. Create a folder named <em>App_Code </em>which is a reserved folder name in ASP.NET. In the <em>App_Code</em> folder create a new <em>.cshtml</em> file and name it <em>MyMapComponent.cshtml</em>. Then replace the existing content with the following codes:</p>
+<pre class="language-cs"><code class="language-cs">@helper AddMap()
+{
+    <span class="hljs-tag">&lt;<span class="hljs-name">link</span> <span class="hljs-attr">rel</span>=<span class="hljs-string">"stylesheet"</span> <span class="hljs-attr">href</span>=<span class="hljs-string">"/Content/ol.css"</span> <span class="hljs-attr">type</span>=<span class="hljs-string">"text/css"</span>&gt;</span>
+    <span class="hljs-tag">&lt;<span class="hljs-name">style</span>&gt;</span>
+        .map {
+            <span class="hljs-attribute">height</span>: <span class="hljs-number">400px</span>;
+            <span class="hljs-attribute">width</span>: <span class="hljs-number">100%</span>;
+        }
+    <span class="hljs-tag">&lt;/<span class="hljs-name">style</span>&gt;</span>
+    <span class="hljs-tag">&lt;<span class="hljs-name">script</span> <span class="hljs-attr">src</span>=<span class="hljs-string">"/Scripts/ol.js"</span>&gt;&lt;/<span class="hljs-name">script</span>&gt;</span>
+
+    <span class="hljs-tag">&lt;<span class="hljs-name">div</span> <span class="hljs-attr">id</span>=<span class="hljs-string">"map"</span> <span class="hljs-attr">class</span>=<span class="hljs-string">"map"</span>&gt;&lt;/<span class="hljs-name">div</span>&gt;</span>
+
+    <span class="hljs-tag">&lt;<span class="hljs-name">script</span> <span class="hljs-attr">type</span>=<span class="hljs-string">"text/javascript"</span>&gt;</span>
+        <span class="hljs-keyword">var</span> map = <span class="hljs-keyword">new</span> ol.Map({
+            target: <span class="hljs-string">'map'</span>,
+            layers: [
+                <span class="hljs-keyword">new</span> ol.layer.Tile({
+                    source: <span class="hljs-keyword">new</span> ol.source.OSM()
+                })
+            ],
+            view: <span class="hljs-keyword">new</span> ol.View({
+                center: ol.proj.fromLonLat([<span class="hljs-number">37.41</span>, <span class="hljs-number">8.82</span>]),
+                zoom: <span class="hljs-number">4</span>
+            })
+        });
+    <span class="hljs-tag">&lt;/<span class="hljs-name">script</span>&gt;</span>
+}
+  </code></pre>
+<p>First, we added <em>js</em> and <em>css</em> files of OL's Library. Then we used <em>&lt;div&gt;</em> HTML element to show the map. You can set any properties to this <em>&lt;div&gt;</em> with <em>css</em> such as height and width.</p>
+<p>To call the helper you created, use following code inside of the view:</p>
+<pre class="language-cs"><code class="language-cs">@<span class="hljs-keyword">MyMapComponent</span>.<span class="hljs-keyword">AddMap</span>()<br></code></pre>
+<h3 id="mcetoc_1dmfg8emj2">Step 3:</h3>
+<p>Let's make our helper more dynamic. To make our helper appropriate for the different type of locations we need to set height and width with input arguments. Also, it is a good idea get longitude and latitude (center of map) and zoom level as input arguments too.</p>
+<p>With this explanation we can change our helper with following codes:</p>
+<pre class="language-cs"><code class="language-cs">@helper AddMap(int height, int width, double longitude, double latitude, int zoomLevel)
+{
+    <span class="hljs-tag">&lt;<span class="hljs-name">link</span> <span class="hljs-attr">rel</span>=<span class="hljs-string">"stylesheet"</span> <span class="hljs-attr">href</span>=<span class="hljs-string">"/Content/ol.css"</span> <span class="hljs-attr">type</span>=<span class="hljs-string">"text/css"</span>&gt;</span>
+    <span class="hljs-tag">&lt;<span class="hljs-name">style</span>&gt;</span>
+        .map {
+            <span class="hljs-attribute">height</span>: @height.<span class="hljs-built_in">ToString</span>()<span class="hljs-built_in">px</span>;
+            <span class="hljs-attribute">width</span>: @width.<span class="hljs-built_in">ToString</span>()<span class="hljs-built_in">px</span>;
+        }
+    <span class="hljs-tag">&lt;/<span class="hljs-name">style</span>&gt;</span>
+    <span class="hljs-tag">&lt;<span class="hljs-name">script</span> <span class="hljs-attr">src</span>=<span class="hljs-string">"/Scripts/ol.js"</span>&gt;&lt;/<span class="hljs-name">script</span>&gt;</span>
+
+    <span class="hljs-tag">&lt;<span class="hljs-name">div</span> <span class="hljs-attr">id</span>=<span class="hljs-string">"map"</span> <span class="hljs-attr">class</span>=<span class="hljs-string">"map"</span>&gt;&lt;/<span class="hljs-name">div</span>&gt;</span>
+
+    <span class="hljs-tag">&lt;<span class="hljs-name">script</span> <span class="hljs-attr">type</span>=<span class="hljs-string">"text/javascript"</span>&gt;</span>
+        <span class="hljs-keyword">var</span> map = <span class="hljs-keyword">new</span> ol.Map({
+            target: <span class="hljs-string">'map'</span>,
+            layers: [
+                <span class="hljs-keyword">new</span> ol.layer.Tile({
+                    source: <span class="hljs-keyword">new</span> ol.source.OSM()
+                })
+            ],
+            view: <span class="hljs-keyword">new</span> ol.View({
+                center: ol.proj.fromLonLat([@longitude, @latitude]),
+                zoom: @zoomLevel
+            })
+        });
+    <span class="hljs-tag">&lt;/<span class="hljs-name">script</span>&gt;</span>
+}
+  </code></pre>
+<p>To call the helper you created, use following code inside of the view:</p>
+<pre class="language-cs"><code class="language-cs">@<span class="hljs-keyword">MyMapComponent</span>.<span class="hljs-keyword">AddMap</span>(<span class="hljs-keyword">400</span>, <span class="hljs-number">700</span>, <span class="hljs-number">37.41</span>, <span class="hljs-number">8.82</span>, <span class="hljs-number">4</span>)
+  </code></pre>
+<h3 id="mcetoc_1dmfg8emj3">Useful Links:</h3>
+<ul>
+<li><a href="https://www.asp.net/" target="_blank" rel="nofollow noopener noreferrer">Asp.net MVC</a></li>
+<li><a href="https://openlayers.org/" target="_blank" rel="nofollow noopener noreferrer">OpenLayers</a></li>
+<li><a href="https://www.openstreetmap.org/" target="_blank" rel="nofollow noopener noreferrer">OpenStreetMap</a></li>
+</ul>
             ]]>
         </content>
     </entry>
